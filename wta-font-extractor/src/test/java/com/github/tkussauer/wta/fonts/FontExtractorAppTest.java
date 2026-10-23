@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -87,7 +88,8 @@ class FontExtractorAppTest {
     }
 
     private static List<List<String>> rows(Sheet sheet) {
-        DataFormatter formatter = new DataFormatter();
+        // Feste Locale, damit Zahlen unabhaengig von den Systemeinstellungen formatiert werden
+        DataFormatter formatter = new DataFormatter(Locale.ROOT);
         List<List<String>> rows = new ArrayList<>();
         for (Row row : sheet) {
             List<String> cells = new ArrayList<>();
