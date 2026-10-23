@@ -44,8 +44,10 @@ public final class ExcelSheetWriter {
     /**
      * Fuegt eine Datenzeile hinzu. Unterstuetzt werden {@link Number}, {@link Boolean}
      * und beliebige andere Objekte (als Text); {@code null} ergibt eine leere Zelle.
+     *
+     * @return die erzeugte Zeile, z. B. um einzelne Zellen hervorzuheben
      */
-    public void addRow(Object... values) {
+    public Row addRow(Object... values) {
         Row row = sheet.createRow(nextRow++);
         for (int i = 0; i < values.length; i++) {
             Object value = values[i];
@@ -64,6 +66,7 @@ public final class ExcelSheetWriter {
                 cell.setCellValue(truncate(value.toString()));
             }
         }
+        return row;
     }
 
     /**
