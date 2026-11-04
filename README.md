@@ -185,10 +185,36 @@ zusammengefasst, wie Word es bei Feldnamen tut.
 
 | Arbeitsblatt   | Inhalt                                                                                              |
 |----------------|-----------------------------------------------------------------------------------------------------|
+| **DataModel**  | Vorschlag für ein konsolidiertes, dublettenfreies Datenmodell für Quadient Inspire (siehe unten)     |
 | **Variablen**  | Jede Variable einmal: Kategorie, Feldarten, Datentyp, Format, Auswahlwerte, Standardwert, Datenbindung, „Innerhalb IF-Feld“, „Im Text verwendet“, Häufigkeit, Vorlagen, Beispielkontext – plus die leeren (gelb markierten) Spalten **Ziel-Datenfeld**, **Datenquelle** und **Bemerkung** zum Ausfüllen des Mappings |
 | Vorkommen      | Jedes einzelne Vorkommen mit Bereich (Hauptdokument, Kopf-/Fußzeile, …), Feldcode, Bedingung und Textkontext |
 | Vorlagen       | Anzahl Variablen je Vorlage und Kategorie                                                           |
 | Fehler         | Nicht lesbare Dateien (nur vorhanden, wenn Fehler auftraten)                                        |
+
+### Arbeitsblatt „DataModel“ – Datenmodell-Vorschlag für Quadient Inspire
+
+Fasst alle Word-Variablen zu einem Datenmodell zusammen, das direkt als Datenstruktur in Inspire
+Designer angelegt werden kann:
+
+- **Gültige Inspire-Bezeichner:** Feldnamen in PascalCase ohne Umlaute, Leer- und Sonderzeichen
+  (`Straße` → `Strasse`, `Geburts datum` → `GeburtsDatum`).
+- **Ohne Dubletten:** Variablen mit gleichem Bezeichner werden über Kategorien und Vorlagen hinweg
+  zusammengeführt, z. B. `MERGEFIELD Strasse`, `«Straße»` und das Inhaltssteuerelement `strasse`.
+  Die Spalte „Herkunft (Word)“ zeigt, woraus ein Feld entstanden ist.
+- **Struktur:** Hierarchien aus Namen (`kunde.anschrift.ort`) oder XML-Datenbindungen
+  (`/vertrag/nummer`) werden übernommen. Sonst wird anhand des Namens eine fachliche Gruppe
+  vorgeschlagen (Empfaenger, Adresse, Kontakt, Vertrag, Rechnung, Absender, Allgemein);
+  Dokumenteigenschaften und -variablen kommen in die Gruppe „Dokument“. Pfad: `Data.<Gruppe>.<Feld>`.
+- **Inspire-Datentypen:** String, Int, Double, Currency, DateTime, Bool, Array, abgeleitet aus
+  Formatschaltern, Steuerelementtypen und Namen (Beträge → Currency). Bei widersprüchlichen Typen
+  wird ein Typ vorgeschlagen und ein Hinweis gesetzt.
+- **Hinweise zur Prüfung:** vermutete Datentypen, berechnete Werte (`SET`), reine Textmarken,
+  nur definierte Variablen, gleiche oder ähnliche Feldnamen in anderen Gruppen.
+
+Darstellung: Kennzahlen-Kacheln, formatierte Excel-Tabelle mit Filter, farbige Datentypen,
+Datenbalken für die Abdeckung (Anteil der Vorlagen), Trennlinien je Gruppe, fixierte Kopfzeile und
+Feldspalten, Auswahlliste „Übernehmen“ (Ja/Nein) und Spalte „Bemerkung“ für die fachliche
+Abstimmung sowie eine Legende der Datentypen. Das Blatt ist für den Querformat-Druck eingerichtet.
 
 Hinweise:
 - Der Datentyp wird aus Formatschaltern und Steuerelementtypen abgeleitet; ohne solche Angaben wird er

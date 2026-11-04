@@ -30,6 +30,7 @@ import java.util.TreeSet;
 /**
  * Schreibt die extrahierten Variablen in eine Excel-Datei.
  * <ul>
+ *     <li><b>DataModel</b> – Vorschlag fuer ein konsolidiertes Inspire-Datenmodell ohne Dubletten</li>
  *     <li><b>Variablen</b> – jede Variable einmal, mit Datentyp, Verwendung und leeren Mapping-Spalten</li>
  *     <li><b>Vorkommen</b> – jedes einzelne Vorkommen mit Bereich, Feldcode, Bedingung und Kontext</li>
  *     <li><b>Vorlagen</b> – Anzahl Variablen je Vorlage und Kategorie</li>
@@ -38,6 +39,7 @@ import java.util.TreeSet;
  */
 public class DataMappingReportWriter {
 
+    public static final String SHEET_DATA_MODEL = DataModelSheetWriter.SHEET_NAME;
     public static final String SHEET_VARIABLES = "Variablen";
     public static final String SHEET_OCCURRENCES = "Vorkommen";
     public static final String SHEET_TEMPLATES = "Vorlagen";
@@ -74,6 +76,15 @@ public class DataMappingReportWriter {
             if (!result.failures().isEmpty()) {
                 writeFailures(workbook, result.failures());
             }
+            new DataModelSheetWriter(workbook).write(DataModelBuilder.build(result.templates()),
+                    result.templates().size());
+            // Das Datenmodell ist das Hauptergebnis: als erstes, aktives Blatt
+            workbook.setSheetOrder(DataModelSheetWriter.SHEET_NAME, 0);
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                // sonst oeffnet Excel mehrere ausgewaehlte Blaetter als Gruppe
+                workbook.getSheetAt(i).setSelected(i == 0);
+            }
+            workbook.setActiveSheet(0);
             Path parent = output.toAbsolutePath().getParent();
             if (parent != null) {
                 Files.createDirectories(parent);

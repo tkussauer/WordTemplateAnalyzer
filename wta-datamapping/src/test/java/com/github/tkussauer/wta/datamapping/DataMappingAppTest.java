@@ -3,6 +3,8 @@ package com.github.tkussauer.wta.datamapping;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,7 +42,39 @@ class DataMappingAppTest {
 
         try (InputStream in = Files.newInputStream(tempDir.resolve("mapping.xlsx"));
              XSSFWorkbook workbook = new XSSFWorkbook(in)) {
-            assertEquals(DataMappingReportWriter.SHEET_VARIABLES, workbook.getSheetName(0));
+            assertEquals(DataMappingReportWriter.SHEET_DATA_MODEL, workbook.getSheetName(0));
+            assertEquals(DataMappingReportWriter.SHEET_VARIABLES, workbook.getSheetName(1));
+            assertEquals(0, workbook.getActiveSheetIndex());
+            assertFalse(workbook.getSheetAt(1).isSelected());
+
+            Sheet model = workbook.getSheet(DataMappingReportWriter.SHEET_DATA_MODEL);
+            assertEquals("Datenmodell-Vorschlag für Quadient Inspire", model.getRow(0).getCell(0).getStringCellValue());
+            XSSFTable table = ((XSSFSheet) model).getTables().get(0);
+            assertEquals(DataModelSheetWriter.TABLE_NAME, table.getName());
+            List<List<String>> modelRows = new ArrayList<>();
+            DataFormatter formatter = new DataFormatter(Locale.ROOT);
+            for (int r = table.getStartRowIndex(); r <= table.getEndRowIndex(); r++) {
+                List<String> cells = new ArrayList<>();
+                for (int c = 0; c < DataModelSheetWriter.HEADERS.size(); c++) {
+                    cells.add(formatter.formatCellValue(model.getRow(r).getCell(c)));
+                }
+                modelRows.add(cells);
+            }
+            assertEquals(DataModelSheetWriter.HEADERS, modelRows.get(0));
+            int path = modelRows.get(0).indexOf("Pfad");
+            int type = modelRows.get(0).indexOf("Inspire-Typ");
+            Map<String, List<String>> byPath = modelRows.subList(1, modelRows.size()).stream()
+                    .collect(Collectors.toMap(r -> r.get(path), Function.identity()));
+            // MERGEFIELD Name (Haupt- und Kopfzeile) ist ein Feld, keine Dublette
+            assertTrue(byPath.containsKey("Data.Empfaenger.Name"));
+            assertEquals("DateTime", byPath.get("Data.Rechnung.Rechnungsdatum").get(type));
+            assertEquals("Currency", byPath.get("Data.Rechnung.Betrag").get(type));
+            assertEquals("Bool", byPath.get("Data.Allgemein.Zustimmung").get(type));
+            assertEquals("bedingt", byPath.get("Data.Empfaenger.Anrede").get(modelRows.get(0).indexOf("Verwendung")));
+            // Datenbindung /vertrag/nummer ergibt die Gruppe Vertrag
+            assertTrue(byPath.containsKey("Data.Vertrag.Nummer"), byPath.keySet().toString());
+            assertTrue(model.getSheetConditionalFormatting().getNumConditionalFormattings() > 0);
+
             List<List<String>> rows = rows(workbook.getSheet(DataMappingReportWriter.SHEET_VARIABLES));
             List<String> header = rows.get(0);
             assertTrue(header.containsAll(DataMappingReportWriter.MAPPING_COLUMNS));
