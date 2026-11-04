@@ -16,6 +16,7 @@
         <module>wta-common</module>
         <module>wta-font-extractor</module>
         <module>wta-complexity</module>
+        <module>wta-datamapping</module>
     </modules>
 
     <properties>

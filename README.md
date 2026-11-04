@@ -10,6 +10,7 @@ einer Migration nach **Quadient Inspire**.
 | `wta-common`         | Gemeinsame Hilfsklassen: Vorlagensuche im Verzeichnis, Excel-Ausgabe    |
 | `wta-font-extractor` | **Anwendung 1** – Extraktion aller Schriftstile in eine Excel-Datei     |
 | `wta-complexity`     | **Anwendung 2** – Komplexitätsbewertung in T-Shirt-Größen (S–XL)        |
+| `wta-datamapping`    | **Anwendung 3** – Extraktion aller zu befüllenden Variablen (Datenmapping) |
 
 Weitere Anwendungen werden als zusätzliche Module angelegt und im Parent-`pom.xml`
 unter `<modules>` eingetragen.
@@ -143,3 +144,56 @@ Hinweise:
   die frei positionierten Zeichnungsobjekte gezählt.
 - Die Seitenzahl stammt aus den Dokumenteigenschaften (von Word beim Speichern gesetzt);
   fehlt sie, wird sie aus manuellen Seitenumbrüchen geschätzt.
+
+## Anwendung 3: Datenmapping (Variablen-Extraktion)
+
+Extrahiert alle Variablen, die beim Erzeugen eines Dokuments befüllt werden müssen, und
+fasst sie über alle Vorlagen zu einer Mapping-Liste zusammen.
+
+```bash
+java -jar wta-datamapping/target/wta-datamapping.jar <Verzeichnis> <Ausgabedatei.xlsx>
+```
+
+| Parameter / Option             | Bedeutung                                                              |
+|--------------------------------|------------------------------------------------------------------------|
+| `<Verzeichnis>`                | Verzeichnis mit den Word-Vorlagen                                      |
+| `<Ausgabedatei.xlsx>`          | Name der Excel-Datei (`.xlsx` wird bei Bedarf ergänzt)                 |
+| `-p`, `--platzhalter <Regex>`  | zusätzliches Platzhaltermuster, Gruppe 1 = Name (mehrfach möglich), z. B. `-p "%([A-Za-z_]+)%"` |
+| `--ohne-textmarken`            | Textmarken nicht als Variablen aufnehmen                               |
+| `-n`, `--nicht-rekursiv`       | Unterverzeichnisse nicht durchsuchen                                   |
+| `-h`, `--hilfe`                | Hilfe anzeigen                                                         |
+
+### Erkannte Variablen
+
+| Kategorie            | Quelle                                                                                   |
+|----------------------|------------------------------------------------------------------------------------------|
+| Seriendruckfeld      | `MERGEFIELD`; Datentyp/Format aus den Schaltern `\@` (Datum) und `\#` (Zahl)           |
+| Dokumentvariable     | `DOCVARIABLE` sowie in der Vorlage gespeicherte Dokumentvariablen (nur docx-Familie)    |
+| Dokumenteigenschaft  | `DOCPROPERTY` sowie benutzerdefinierte Dokumenteigenschaften                             |
+| Eingabeaufforderung  | `ASK`, `FILLIN`                                                                           |
+| Formularfeld         | `FORMTEXT`, `FORMCHECKBOX`, `FORMDROPDOWN` mit Name, Standardwert und Auswahlwerten      |
+| Inhaltssteuerelement | Tag bzw. Titel, Typ (Text, Datum, Dropdown, Kontrollkästchen, Bild, …), Auswahlwerte und XML-Datenbindung (XPath); Bausteine wie Seitenzahlen oder Deckblätter werden ignoriert |
+| Textmarke            | benannte Textmarken sowie `REF` und `SET` (ohne versteckte wie `_GoBack`)                |
+| Platzhalter          | Text wie `«Name»`, `{{Name}}`, `${Name}`, `<<Name>>`, `[[Name]]` außerhalb von Feldern   |
+
+Variablen innerhalb von `IF`-Feldern (in der Bedingung oder im bedingten Text) werden gekennzeichnet;
+die Bedingung steht im Blatt „Vorkommen“. Feldergebnisse wie `«Name»` eines `MERGEFIELD` zählen nicht
+zusätzlich als Platzhalter. Gleichnamige Variablen werden ohne Beachtung der Groß-/Kleinschreibung
+zusammengefasst, wie Word es bei Feldnamen tut.
+
+### Inhalt der Excel-Datei
+
+| Arbeitsblatt   | Inhalt                                                                                              |
+|----------------|-----------------------------------------------------------------------------------------------------|
+| **Variablen**  | Jede Variable einmal: Kategorie, Feldarten, Datentyp, Format, Auswahlwerte, Standardwert, Datenbindung, „Innerhalb IF-Feld“, „Im Text verwendet“, Häufigkeit, Vorlagen, Beispielkontext – plus die leeren (gelb markierten) Spalten **Ziel-Datenfeld**, **Datenquelle** und **Bemerkung** zum Ausfüllen des Mappings |
+| Vorkommen      | Jedes einzelne Vorkommen mit Bereich (Hauptdokument, Kopf-/Fußzeile, …), Feldcode, Bedingung und Textkontext |
+| Vorlagen       | Anzahl Variablen je Vorlage und Kategorie                                                           |
+| Fehler         | Nicht lesbare Dateien (nur vorhanden, wenn Fehler auftraten)                                        |
+
+Hinweise:
+- Der Datentyp wird aus Formatschaltern und Steuerelementtypen abgeleitet; ohne solche Angaben wird er
+  aus dem Namen geschätzt (z. B. „…datum“ → „Datum (vermutet)“), sonst „Text“.
+- In `.doc`-Dateien werden gespeicherte Dokumentvariablen nicht ausgelesen (nur `DOCVARIABLE`-Felder);
+  Formularfelder erhalten ihren Namen über die gleichnamige Textmarke am Feldbeginn.
+- Variablen, die nur per VBA-Makro befüllt werden, ohne ein Feld, eine Textmarke oder einen Platzhalter
+  zu verwenden, können nicht erkannt werden.

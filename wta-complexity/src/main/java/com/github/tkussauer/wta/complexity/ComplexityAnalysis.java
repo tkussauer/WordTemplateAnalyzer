@@ -1,7 +1,7 @@
 package com.github.tkussauer.wta.complexity;
 
 import com.github.tkussauer.wta.common.TemplateScanner;
-import com.github.tkussauer.wta.fonts.ExtractionFailure;
+import com.github.tkussauer.wta.common.ExtractionFailure;
 import org.apache.poi.poifs.filesystem.FileMagic;
 
 import java.io.IOException;

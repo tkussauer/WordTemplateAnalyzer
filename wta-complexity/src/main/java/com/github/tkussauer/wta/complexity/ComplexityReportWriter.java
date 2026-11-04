@@ -1,7 +1,7 @@
 package com.github.tkussauer.wta.complexity;
 
 import com.github.tkussauer.wta.common.ExcelSheetWriter;
-import com.github.tkussauer.wta.fonts.ExtractionFailure;
+import com.github.tkussauer.wta.common.ExtractionFailure;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;

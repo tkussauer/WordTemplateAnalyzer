@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.fonts;
 
+import com.github.tkussauer.wta.common.ExtractionFailure;
 import com.github.tkussauer.wta.common.ExcelSheetWriter;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 

@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.fonts;
 
+import com.github.tkussauer.wta.common.ExtractionFailure;
 import com.github.tkussauer.wta.common.TemplateScanner;
 import org.apache.poi.poifs.filesystem.FileMagic;
 
