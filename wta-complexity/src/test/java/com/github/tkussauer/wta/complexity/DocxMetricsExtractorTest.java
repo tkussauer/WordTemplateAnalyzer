@@ -37,6 +37,23 @@ class DocxMetricsExtractorTest {
     }
 
     @Test
+    void ignoresHiddenHeadersAndCountsSectionPages() throws Exception {
+        Path file = tempDir.resolve("abschnitte.docx");
+        ComplexTemplates.writeWithHiddenHeader(file);
+
+        TemplateMetrics metrics = new DocxMetricsExtractor().extract(file, "abschnitte.docx");
+
+        // Abschnitt 2 beginnt auf neuer Seite, app.xml enthaelt keine Seitenzahl
+        assertEquals(2, metrics.get(Metric.PAGES));
+        assertEquals(1, metrics.get(Metric.HEADERS_FOOTERS));
+        assertEquals(1, metrics.get(Metric.HIDDEN_HEADERS_FOOTERS));
+        // Das IF-Feld steht nur in der nicht angezeigten Kopfzeile "Erste Seite"
+        assertEquals(0, metrics.get(Metric.CONDITIONS));
+        assertEquals(2, metrics.get(Metric.DATA_FIELDS));
+        assertEquals(3, metrics.get(Metric.DATA_FIELD_USES));
+    }
+
+    @Test
     void measuresSimpleTemplate() throws Exception {
         Path file = tempDir.resolve("einfach.docx");
         ComplexTemplates.writeSimple(file);

@@ -142,8 +142,15 @@ mit dem Ergebnis vergleichen und Gewichte/Schwellen entsprechend kalibrieren.
 Hinweise:
 - In `.doc`-Dateien sind Inhaltssteuerelemente nicht vorhanden; Textfelder/Formen werden über
   die frei positionierten Zeichnungsobjekte gezählt.
-- Die Seitenzahl stammt aus den Dokumenteigenschaften (von Word beim Speichern gesetzt);
-  fehlt sie, wird sie aus manuellen Seitenumbrüchen geschätzt.
+- Seiten: Die Angabe in den Dokumenteigenschaften ist oft veraltet (Stand des letzten Speicherns).
+  Verwendet wird daher das Maximum aus dieser Angabe und einer Schätzung über manuelle
+  Seitenumbrüche, Abschnitte, die auf einer neuen Seite beginnen, und von Word vermerkte Umbrüche.
+- Datenfelder zählen je Feldname einmal (`MERGEFIELD Name` an fünf Stellen = 1 Datenfeld);
+  alle Vorkommen stehen in der Kennzahl „Datenfeld-Verwendungen“.
+- Kopf-/Fußzeilen, die Word nicht anzeigt (z. B. Variante „Erste Seite“, wenn der Abschnitt
+  „Erste Seite anders“ nicht aktiviert hat), fließen nicht in die Bewertung ein; ihre Anzahl steht
+  in „Nicht angezeigte Kopf-/Fußzeilen“. Das gilt auch für die Schriftarten-Extraktion; das
+  Datenmapping führt ihre Variablen mit dem Bereich „… (nicht angezeigt)“ und einem Hinweis.
 
 ## Anwendung 3: Datenmapping (Variablen-Extraktion)
 

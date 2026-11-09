@@ -2,6 +2,7 @@ package com.github.tkussauer.wta.complexity;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -21,6 +22,8 @@ final class FieldCounter {
     private static final Set<String> FORMS = Set.of("FORMTEXT", "FORMCHECKBOX", "FORMDROPDOWN");
 
     private static final Pattern KEYWORD = Pattern.compile("\\p{Alpha}+");
+    /** Schluesselwort und Feldname, ggf. in Anfuehrungszeichen: MERGEFIELD "Geburts datum". */
+    private static final Pattern DATA_FIELD = Pattern.compile("(\\p{Alpha}+)\\s+(?:\"([^\"]*)\"|(\\S+))");
 
     private static final class Frame {
         final StringBuilder code = new StringBuilder();
@@ -29,6 +32,8 @@ final class FieldCounter {
 
     private final TemplateMetrics metrics;
     private final Deque<Frame> open = new ArrayDeque<>();
+    /** Unterschiedliche Datenfelder, z. B. "MERGEFIELD:name". */
+    private final Set<String> dataFields = new HashSet<>();
     private int maxDepth;
 
     FieldCounter(TemplateMetrics metrics) {
@@ -75,6 +80,7 @@ final class FieldCounter {
     void finish() {
         open.clear();
         metrics.set(Metric.FIELD_NESTING, Math.max(metrics.get(Metric.FIELD_NESTING), maxDepth));
+        metrics.set(Metric.DATA_FIELDS, dataFields.size());
     }
 
     private void count(String instruction) {
@@ -82,7 +88,18 @@ final class FieldCounter {
         if (code.isEmpty()) {
             return;
         }
-        metrics.add(classify(code), 1);
+        Metric category = classify(code);
+        if (category == Metric.DATA_FIELDS) {
+            // Datenfelder zaehlen je Name einmal; Wiederholungen nur als Verwendungen
+            metrics.add(Metric.DATA_FIELD_USES, 1);
+            Matcher matcher = DATA_FIELD.matcher(code);
+            String key = matcher.lookingAt()
+                    ? matcher.group(1) + ":" + (matcher.group(2) != null ? matcher.group(2) : matcher.group(3))
+                    : code;
+            dataFields.add(key.toLowerCase(Locale.ROOT));
+        } else {
+            metrics.add(category, 1);
+        }
     }
 
     static Metric classify(String instruction) {

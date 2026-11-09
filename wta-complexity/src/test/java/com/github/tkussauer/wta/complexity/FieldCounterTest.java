@@ -18,6 +18,22 @@ class FieldCounterTest {
     }
 
     @Test
+    void countsDistinctDataFieldsAndAllUses() {
+        TemplateMetrics metrics = new TemplateMetrics("x.docx", "docx");
+        FieldCounter fields = new FieldCounter(metrics);
+        fields.simple(" MERGEFIELD Name \\* MERGEFORMAT ");
+        fields.simple("MERGEFIELD  name");
+        fields.simple("MERGEFIELD \"Geburts datum\"");
+        fields.simple("MERGEFIELD \"Geburts datum\" \\@ \"dd.MM.yyyy\"");
+        fields.simple("DOCVARIABLE Name");
+        fields.finish();
+
+        // Name und name sind dasselbe Feld, DOCVARIABLE Name ein anderes
+        assertEquals(3, metrics.get(Metric.DATA_FIELDS));
+        assertEquals(5, metrics.get(Metric.DATA_FIELD_USES));
+    }
+
+    @Test
     void parsesBinaryFieldMarkers() {
         // IF-Feld mit eingebettetem MERGEFIELD, danach ein PAGE-Feld
         String text = "Text \u0013 IF \u0013 MERGEFIELD Anrede \u0014Herr\u0015 = \"Herr\" \"a\" \"b\" \u0014a\u0015"

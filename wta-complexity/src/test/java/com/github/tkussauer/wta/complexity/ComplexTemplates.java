@@ -10,6 +10,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBookmark;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSimpleField;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STFldCharType;
 
@@ -77,6 +78,31 @@ final class ComplexTemplates {
             XWPFRun breakRun = doc.createParagraph().createRun();
             breakRun.addBreak(BreakType.PAGE);
             doc.createParagraph().createRun().setText("Seite 2");
+            write(doc, file);
+        }
+    }
+
+    /**
+     * Zwei Abschnitte (der zweite beginnt auf neuer Seite), eine angezeigte Standard-Kopfzeile und eine
+     * Kopfzeile "Erste Seite" mit IF-Feld, die mangels "Erste Seite anders" nicht angezeigt wird.
+     * Das Datenfeld Kunde kommt zweimal vor.
+     */
+    static void writeWithHiddenHeader(Path file) throws IOException {
+        try (XWPFDocument doc = new XWPFDocument()) {
+            XWPFParagraph first = doc.createParagraph();
+            simpleField(first.getCTP(), " MERGEFIELD Kunde ");
+            first.getCTP().addNewPPr().addNewSectPr();
+            XWPFParagraph second = doc.createParagraph();
+            simpleField(second.getCTP(), " MERGEFIELD Kunde ");
+            simpleField(second.getCTP(), " MERGEFIELD Datum ");
+
+            simpleField(doc.createHeader(HeaderFooterType.DEFAULT).createParagraph().getCTP(), " PAGE ");
+            simpleField(doc.createHeader(HeaderFooterType.FIRST).createParagraph().getCTP(),
+                    " IF 1 = 1 \"a\" \"b\" ");
+            CTSectPr sectPr = doc.getDocument().getBody().getSectPr();
+            while (sectPr.isSetTitlePg()) {
+                sectPr.unsetTitlePg();
+            }
             write(doc, file);
         }
     }

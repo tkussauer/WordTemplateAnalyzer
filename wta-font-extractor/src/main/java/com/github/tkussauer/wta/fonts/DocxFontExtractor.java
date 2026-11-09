@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.fonts;
 
+import com.github.tkussauer.wta.common.DocxLayout;
 import org.apache.poi.ooxml.util.POIXMLUnits;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFFooter;
@@ -71,11 +72,17 @@ public class DocxFontExtractor implements FontExtractor {
 
         DocumentFonts run(String documentName) {
             scan(document.getDocument().getBody(), "Hauptdokument");
+            // Nicht angezeigte Kopf-/Fusszeilen erscheinen im Dokument nicht und bleiben unberuecksichtigt
+            DocxLayout layout = DocxLayout.of(document);
             for (XWPFHeader header : document.getHeaderList()) {
-                scan(header._getHdrFtr(), "Kopfzeile");
+                if (layout.isDisplayed(document, header)) {
+                    scan(header._getHdrFtr(), "Kopfzeile");
+                }
             }
             for (XWPFFooter footer : document.getFooterList()) {
-                scan(footer._getHdrFtr(), "Fußzeile");
+                if (layout.isDisplayed(document, footer)) {
+                    scan(footer._getHdrFtr(), "Fußzeile");
+                }
             }
             for (XWPFFootnote footnote : document.getFootnotes()) {
                 scan(footnote.getCTFtnEdn(), "Fußnote");

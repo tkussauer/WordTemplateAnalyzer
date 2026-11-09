@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.datamapping;
 
+import com.github.tkussauer.wta.common.DocxLayout;
 import org.apache.poi.ooxml.POIXMLDocumentPart;
 import org.apache.poi.ooxml.POIXMLProperties;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -56,12 +57,14 @@ public class DocxVariableExtractor implements VariableExtractor {
         try (InputStream in = Files.newInputStream(file); XWPFDocument doc = new XWPFDocument(in)) {
             collector.area("Hauptdokument");
             walk(doc.getDocument().getBody(), collector);
+            // Nicht angezeigte Kopf-/Fusszeilen werden ausgewertet, aber gekennzeichnet
+            DocxLayout layout = DocxLayout.of(doc);
             for (XWPFHeader header : doc.getHeaderList()) {
-                collector.area("Kopfzeile");
+                collector.area("Kopfzeile" + (layout.isDisplayed(doc, header) ? "" : DocxLayout.NOT_DISPLAYED));
                 walk(header._getHdrFtr(), collector);
             }
             for (XWPFFooter footer : doc.getFooterList()) {
-                collector.area("Fußzeile");
+                collector.area("Fußzeile" + (layout.isDisplayed(doc, footer) ? "" : DocxLayout.NOT_DISPLAYED));
                 walk(footer._getHdrFtr(), collector);
             }
             for (XWPFFootnote note : doc.getFootnotes()) {

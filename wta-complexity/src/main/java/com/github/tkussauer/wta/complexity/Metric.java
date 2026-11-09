@@ -6,15 +6,22 @@ package com.github.tkussauer.wta.complexity;
  */
 public enum Metric {
 
-    PAGES("seiten", "Seiten", "Seitenanzahl laut Dokumenteigenschaften, mindestens Anzahl manueller Seitenumbrüche + 1"),
+    PAGES("seiten", "Seiten", "Seitenanzahl: Maximum aus Dokumenteigenschaften und Schätzung über "
+            + "Seitenumbrüche sowie Abschnitte, die auf einer neuen Seite beginnen"),
     SECTIONS("abschnitte", "Abschnitte", "Abschnitte (unterschiedliche Seitenlayouts, Kopf-/Fußzeilen)"),
     PARAGRAPHS("absaetze", "Absätze", "Absätze in allen Bereichen"),
     TABLES("tabellen", "Tabellen", "Tabellen"),
     NESTED_TABLES("verschachtelte_tabellen", "Verschachtelte Tabellen", "Tabellen innerhalb von Tabellen"),
     IMAGES("bilder", "Bilder/Grafiken", "Bilder, Logos und Diagramme"),
     TEXT_BOXES("textfelder", "Textfelder/Formen", "Textfelder und frei positionierte Formen"),
-    HEADERS_FOOTERS("kopf_fusszeilen", "Kopf-/Fußzeilen", "Kopf- und Fußzeilen mit Inhalt (je Variante)"),
-    DATA_FIELDS("datenfelder", "Datenfelder", "Variable Daten: MERGEFIELD, DOCVARIABLE, DOCPROPERTY, REF, SET, ASK, FILLIN"),
+    HEADERS_FOOTERS("kopf_fusszeilen", "Kopf-/Fußzeilen", "Angezeigte Kopf- und Fußzeilen mit Inhalt (je Variante)"),
+    HIDDEN_HEADERS_FOOTERS("ausgeblendete_kopf_fusszeilen", "Nicht angezeigte Kopf-/Fußzeilen",
+            "Kopf-/Fußzeilen, die Word nicht anzeigt (z. B. Variante „Erste Seite“ ohne „Erste Seite anders“); "
+            + "werden nicht weiter ausgewertet"),
+    DATA_FIELDS("datenfelder", "Datenfelder", "Unterschiedliche variable Daten: MERGEFIELD, DOCVARIABLE, DOCPROPERTY, "
+            + "REF, SET, ASK, FILLIN (jeder Feldname einmal)"),
+    DATA_FIELD_USES("datenfeld_verwendungen", "Datenfeld-Verwendungen", "Anzahl aller Vorkommen von Datenfeldern, "
+            + "inkl. Wiederholungen"),
     CONDITIONS("bedingungen", "Bedingungen", "Bedingte Inhalte: IF, COMPARE, SKIPIF, NEXTIF"),
     INCLUDES("einbindungen", "Einbindungen", "Externe Inhalte: INCLUDETEXT, INCLUDEPICTURE, AUTOTEXT, LINK, DATABASE"),
     FORM_FIELDS("formularfelder", "Formularfelder", "Legacy-Formularfelder: FORMTEXT, FORMCHECKBOX, FORMDROPDOWN"),

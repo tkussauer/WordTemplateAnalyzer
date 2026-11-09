@@ -1,5 +1,7 @@
 package com.github.tkussauer.wta.datamapping;
 
+import com.github.tkussauer.wta.common.DocxLayout;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -203,10 +205,12 @@ public final class DataModelBuilder {
         boolean onlyDefinitions = true;
         boolean onlyBookmarks = true;
         boolean computed = false;
+        boolean onlyHidden = true;
         boolean image = false;
         for (VariableOccurrence o : draft.occurrences) {
             templates.add(o.document());
             sources.add(source(o));
+            onlyHidden &= o.area().endsWith(DocxLayout.NOT_DISPLAYED);
             if (o.format() != null && !o.format().isBlank()) {
                 formats.add(o.format());
             }
@@ -251,6 +255,9 @@ public final class DataModelBuilder {
         if (onlyDefinitions) {
             notes.add("Nur in der Vorlage definiert, im Text nicht verwendet");
             conditional = false;
+        }
+        if (onlyHidden) {
+            notes.add("Nur in nicht angezeigten Kopf-/Fußzeilen – prüfen, ob das Feld benötigt wird");
         }
         if (formats.size() > 1) {
             notes.add("Unterschiedliche Formate in den Vorlagen");

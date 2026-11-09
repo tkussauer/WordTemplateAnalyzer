@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.complexity;
 
+import com.github.tkussauer.wta.common.DocxLayout;
 import com.github.tkussauer.wta.fonts.DocxFontExtractor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.PackagePart;
@@ -48,19 +49,26 @@ public class DocxMetricsExtractor implements MetricsExtractor {
     public TemplateMetrics extract(Path file, String documentName) throws IOException {
         TemplateMetrics metrics = new TemplateMetrics(documentName, extension(file));
         try (InputStream in = Files.newInputStream(file); XWPFDocument doc = new XWPFDocument(in)) {
+            DocxLayout layout = DocxLayout.of(doc);
             Walker walker = new Walker(metrics);
             walker.walk(doc.getDocument().getBody());
+            int renderedPageBreaks = walker.renderedPageBreaks;
 
             List<XWPFHeaderFooter> headersFooters = new ArrayList<>(doc.getHeaderList());
             headersFooters.addAll(doc.getFooterList());
             int withContent = 0;
+            int hidden = 0;
             for (XWPFHeaderFooter part : headersFooters) {
-                walker.walk(part._getHdrFtr());
-                if (!part.getText().isBlank() || !part.getAllPictures().isEmpty()) {
-                    withContent++;
+                boolean hasContent = !part.getText().isBlank() || !part.getAllPictures().isEmpty();
+                if (!layout.isDisplayed(doc, part)) {
+                    hidden += hasContent ? 1 : 0;
+                    continue;
                 }
+                walker.walk(part._getHdrFtr());
+                withContent += hasContent ? 1 : 0;
             }
             metrics.set(Metric.HEADERS_FOOTERS, withContent);
+            metrics.set(Metric.HIDDEN_HEADERS_FOOTERS, hidden);
 
             int notes = 0;
             for (XWPFFootnote note : doc.getFootnotes()) {
@@ -78,7 +86,9 @@ public class DocxMetricsExtractor implements MetricsExtractor {
             if (doc.getProperties() != null && doc.getProperties().getExtendedProperties() != null) {
                 pages = doc.getProperties().getExtendedProperties().getPages();
             }
-            metrics.set(Metric.PAGES, Math.max(pages, walker.pageBreaks + 1));
+            // app.xml ist oft veraltet (Stand des letzten Speicherns); daher auch die Struktur auswerten
+            int estimated = 1 + walker.pageBreaks + layout.sectionPageBreaks();
+            metrics.set(Metric.PAGES, Math.max(pages, Math.max(estimated, renderedPageBreaks + 1)));
             metrics.set(Metric.MACROS, hasMacros(doc) ? 1 : 0);
         }
         FontMetrics.apply(fontExtractor.extract(file, documentName), metrics);
@@ -113,6 +123,8 @@ public class DocxMetricsExtractor implements MetricsExtractor {
         private final FieldCounter fields;
         private final Set<String> listIds = new HashSet<>();
         private int pageBreaks;
+        /** Von Word beim Speichern vermerkte Seitenumbrueche (w:lastRenderedPageBreak). */
+        private int renderedPageBreaks;
 
         Walker(TemplateMetrics metrics) {
             this.metrics = metrics;
@@ -215,6 +227,7 @@ public class DocxMetricsExtractor implements MetricsExtractor {
                         pageBreaks++;
                     }
                 }
+                case "lastRenderedPageBreak" -> renderedPageBreaks++;
                 case "pageBreakBefore" -> {
                     String val = attribute(cursor, W_VAL);
                     if (val.isEmpty() || "true".equals(val) || "1".equals(val) || "on".equals(val)) {
