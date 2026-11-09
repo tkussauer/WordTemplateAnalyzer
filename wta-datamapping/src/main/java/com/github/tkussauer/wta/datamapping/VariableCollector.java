@@ -1,5 +1,6 @@
 package com.github.tkussauer.wta.datamapping;
 
+import com.github.tkussauer.wta.common.FieldCode;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;

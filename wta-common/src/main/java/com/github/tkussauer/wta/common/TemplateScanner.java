@@ -17,6 +17,28 @@ public final class TemplateScanner {
     }
 
     /**
+     * Liefert die zu analysierenden Vorlagen: die Datei selbst oder alle Word-Dateien im Verzeichnis.
+     *
+     * @param input  einzelne Word-Datei oder Verzeichnis
+     */
+    public static List<Path> resolve(Path input, boolean recursive) throws IOException {
+        if (Files.isRegularFile(input)) {
+            if (WordFormat.of(input).isEmpty()) {
+                throw new IOException("Keine Word-Datei (docx, dotx, docm, dotm, doc, dot): " + input);
+            }
+            return List.of(input);
+        }
+        return findTemplates(input, recursive);
+    }
+
+    /**
+     * Name einer Vorlage im Ergebnis: relativ zum Eingabeverzeichnis bzw. der Dateiname.
+     */
+    public static String displayName(Path input, Path file) {
+        return Files.isRegularFile(input) ? file.getFileName().toString() : input.relativize(file).toString();
+    }
+
+    /**
      * Liefert alle Word-Dateien im Verzeichnis, sortiert nach Pfad.
      * Temporaere Sperrdateien von Word ("~$...") werden ignoriert.
      *

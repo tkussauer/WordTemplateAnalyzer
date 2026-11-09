@@ -1,4 +1,4 @@
-package com.github.tkussauer.wta.datamapping;
+package com.github.tkussauer.wta.common;
 
 import org.junit.jupiter.api.Test;
 

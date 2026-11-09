@@ -11,6 +11,7 @@ einer Migration nach **Quadient Inspire**.
 | `wta-font-extractor` | **Anwendung 1** – Extraktion aller Schriftstile in eine Excel-Datei     |
 | `wta-complexity`     | **Anwendung 2** – Komplexitätsbewertung in T-Shirt-Größen (S–XL)        |
 | `wta-datamapping`    | **Anwendung 3** – Extraktion aller zu befüllenden Variablen (Datenmapping) |
+| `wta-conditions`     | **Anwendung 4** – Extraktion aller Bedingungen (IF, COMPARE, SKIPIF, NEXTIF) |
 
 Weitere Anwendungen werden als zusätzliche Module angelegt und im Parent-`pom.xml`
 unter `<modules>` eingetragen.
@@ -230,3 +231,36 @@ Hinweise:
   Formularfelder erhalten ihren Namen über die gleichnamige Textmarke am Feldbeginn.
 - Variablen, die nur per VBA-Makro befüllt werden, ohne ein Feld, eine Textmarke oder einen Platzhalter
   zu verwenden, können nicht erkannt werden.
+
+## Anwendung 4: Bedingungen
+
+Extrahiert alle Bedingungsfelder aus einer Vorlage oder allen Vorlagen eines Verzeichnisses,
+zerlegt sie und beschreibt sie im Klartext – als Grundlage für die Umsetzung der Logik in Inspire.
+
+```bash
+java -jar wta-conditions/target/wta-conditions.jar <Datei oder Verzeichnis> <Ausgabedatei.xlsx>
+```
+
+| Parameter / Option        | Bedeutung                                                  |
+|---------------------------|------------------------------------------------------------|
+| `<Datei oder Verzeichnis>`| eine Word-Vorlage oder ein Verzeichnis mit Vorlagen        |
+| `<Ausgabedatei.xlsx>`     | Name der Excel-Datei (`.xlsx` wird bei Bedarf ergänzt)     |
+| `-n`, `--nicht-rekursiv`  | Unterverzeichnisse nicht durchsuchen                       |
+| `-h`, `--hilfe`           | Hilfe anzeigen                                             |
+
+Erkannt werden `IF` (mit Dann- und Sonst-Text), `COMPARE`, `SKIPIF` und `NEXTIF`, auch verschachtelt
+und in Kopf-/Fußzeilen, Fuß- und Endnoten. Verschachtelte Bedingungen werden hierarchisch nummeriert
+(`1`, `1.1`, `1.2`, …) und mit ihrer Lage gekennzeichnet („Dann-Zweig von 1“).
+
+| Arbeitsblatt     | Inhalt                                                                                         |
+|------------------|------------------------------------------------------------------------------------------------|
+| **Bedingungen**  | Je Bedingung: Bereich, Nr., Ebene, Lage, Art, **Klartext** (z. B. `WENN «Anrede» ist gleich „Herr“ DANN „Sehr geehrter Herr «Name»“ SONST „Sehr geehrte Damen und Herren“`, je Ebene eingerückt), abgefragte Felder, Operator, Vergleichswert, Dann/Sonst, **normalisierter Ausdruck** (z. B. `Anrede == "Herr"`, `Zusatz != ""`), Felder im Dann/Sonst-Text, Hinweise, aktuelles Ergebnis, Kontext und vollständiger Feldcode |
+| Felder           | Welche Datenfelder in Bedingungen abgefragt werden, mit Operatoren und vorkommenden Vergleichswerten (z. B. alle Werte von `Anrede`) |
+| Übersicht        | Je Vorlage: Anzahl Bedingungen, davon verschachtelt, maximale Tiefe, abgefragte Felder, Anzahl in nicht angezeigten Bereichen |
+| Fehler           | Nicht lesbare Dateien (nur vorhanden, wenn Fehler auftraten)                                   |
+
+Hinweise:
+- Bedingungen in Kopf-/Fußzeilen, die Word nicht anzeigt, werden grau und kursiv dargestellt.
+- Vergleiche mit `*` oder `?` sind in Word Mustervergleiche; sie werden als Hinweis markiert.
+- Der normalisierte Ausdruck ist eine Vorlage für die Umsetzung, keine fertige Inspire-Syntax.
+- Sowohl `.docx`-Familie als auch `.doc`/`.dot` werden unterstützt.

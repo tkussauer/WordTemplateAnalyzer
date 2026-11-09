@@ -1,4 +1,4 @@
-package com.github.tkussauer.wta.datamapping;
+package com.github.tkussauer.wta.common;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,12 +14,12 @@ import java.util.Set;
  * @param arguments Argumente ohne Anfuehrungszeichen; verschachtelte Felder als {@code {...}}
  * @param switches  Schalter mit Wert, z. B. {@code \@ -> dd.MM.yyyy}
  */
-record FieldCode(String keyword, List<String> arguments, Map<String, String> switches) {
+public record FieldCode(String keyword, List<String> arguments, Map<String, String> switches) {
 
     /** Schalter, denen ein Wert folgt. */
     private static final Set<String> VALUE_SWITCHES = Set.of("\\@", "\\#", "\\*", "\\b", "\\f", "\\d", "\\o");
 
-    static FieldCode parse(String code) {
+    public static FieldCode parse(String code) {
         List<String> tokens = tokenize(code);
         if (tokens.isEmpty()) {
             return new FieldCode("", List.of(), Map.of());
@@ -51,7 +51,7 @@ record FieldCode(String keyword, List<String> arguments, Map<String, String> swi
         return new FieldCode(keyword, arguments, switches);
     }
 
-    String argument(int index) {
+    public String argument(int index) {
         return index < arguments.size() ? arguments.get(index).strip() : "";
     }
 
@@ -67,7 +67,7 @@ record FieldCode(String keyword, List<String> arguments, Map<String, String> swi
     }
 
     /** Zerlegt an Leerraum; Anfuehrungszeichen und verschachtelte Felder {...} bleiben zusammen. */
-    static List<String> tokenize(String code) {
+    public static List<String> tokenize(String code) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean quoted = false;
