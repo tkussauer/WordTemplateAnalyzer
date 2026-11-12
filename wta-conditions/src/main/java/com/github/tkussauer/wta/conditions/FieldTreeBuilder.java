@@ -1,15 +1,17 @@
 package com.github.tkussauer.wta.conditions;
 
+import com.github.tkussauer.wta.common.WordEventListener;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
 /**
- * Baut aus einem Strom von Ereignissen (Text, Feldbeginn, Feldcode, Trenner, Feldende, Absatzende)
- * den Baum der Felder auf. Die formatspezifischen Leser erzeugen diese Ereignisse.
+ * Baut aus den Ereignissen des {@link com.github.tkussauer.wta.common.WordDocumentReader} den Baum der
+ * Felder auf.
  */
-final class FieldTreeBuilder {
+final class FieldTreeBuilder implements WordEventListener {
 
     private static final int CONTEXT_LENGTH = 160;
 
@@ -23,16 +25,19 @@ final class FieldTreeBuilder {
     private final Deque<Paragraph> paragraphs = new ArrayDeque<>();
     private String area = "Hauptdokument";
 
-    void area(String area) {
+    @Override
+    public void area(String area) {
         flush();
         this.area = area;
     }
 
-    void paragraphStart() {
+    @Override
+    public void paragraphStart() {
         paragraphs.push(new Paragraph());
     }
 
-    void paragraphEnd() {
+    @Override
+    public void paragraphEnd() {
         Paragraph paragraph = paragraphs.poll();
         if (paragraph == null) {
             return;
@@ -54,7 +59,8 @@ final class FieldTreeBuilder {
     }
 
     /** Sichtbarer Text: gehoert zum Ergebnis des innersten Feldes bzw. zum Absatz. */
-    void text(String text) {
+    @Override
+    public void text(String text) {
         boolean inCode = open.stream().anyMatch(FieldNode::inCode);
         FieldNode top = open.peek();
         if (top != null && !top.inCode()) {
@@ -65,7 +71,8 @@ final class FieldTreeBuilder {
         }
     }
 
-    void beginField() {
+    @Override
+    public void beginField() {
         FieldNode node = new FieldNode(area);
         FieldNode parent = open.peek();
         if (parent != null && parent.inCode()) {
@@ -78,21 +85,24 @@ final class FieldTreeBuilder {
         open.push(node);
     }
 
-    void fieldCode(String text) {
+    @Override
+    public void fieldCode(String text) {
         FieldNode top = open.peek();
         if (top != null && top.inCode()) {
             top.appendCode(text);
         }
     }
 
-    void separateField() {
+    @Override
+    public void separateField() {
         FieldNode top = open.peek();
         if (top != null) {
             top.endCode();
         }
     }
 
-    void endField() {
+    @Override
+    public void endField() {
         FieldNode node = open.poll();
         if (node != null) {
             node.endCode();

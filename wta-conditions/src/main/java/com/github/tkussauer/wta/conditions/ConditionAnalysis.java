@@ -2,7 +2,7 @@ package com.github.tkussauer.wta.conditions;
 
 import com.github.tkussauer.wta.common.ExtractionFailure;
 import com.github.tkussauer.wta.common.TemplateScanner;
-import org.apache.poi.poifs.filesystem.FileMagic;
+import com.github.tkussauer.wta.common.WordDocumentReader;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -27,9 +27,6 @@ public class ConditionAnalysis {
     public record Result(List<TemplateConditions> templates, List<ExtractionFailure> failures) {
     }
 
-    private final FieldReader docxReader = new DocxFieldReader();
-    private final FieldReader docReader = new DocFieldReader();
-
     /**
      * @param input      Word-Datei oder Verzeichnis
      * @param recursive  Unterverzeichnisse einbeziehen
@@ -43,8 +40,10 @@ public class ConditionAnalysis {
         for (Path file : files) {
             String name = TemplateScanner.displayName(input, file);
             try {
-                List<Condition> conditions = ConditionParser.parse(name, readerFor(file).read(file));
-                templates.add(new TemplateConditions(name, FieldReader.extension(file), conditions));
+                FieldTreeBuilder builder = new FieldTreeBuilder();
+                WordDocumentReader.read(file, builder);
+                List<Condition> conditions = ConditionParser.parse(name, builder.finish());
+                templates.add(new TemplateConditions(name, WordDocumentReader.extension(file), conditions));
                 progress.accept(String.format("[%d/%d] %s: %d Bedingung(en)", ++index, files.size(), name,
                         conditions.size()));
             } catch (Exception | LinkageError e) {
@@ -54,15 +53,5 @@ public class ConditionAnalysis {
             }
         }
         return new Result(templates, failures);
-    }
-
-    /** Waehlt den Leser nach dem tatsaechlichen Dateiinhalt, nicht nach der Endung. */
-    private FieldReader readerFor(Path file) throws IOException {
-        FileMagic magic = FileMagic.valueOf(file.toFile());
-        return switch (magic) {
-            case OOXML -> docxReader;
-            case OLE2 -> docReader;
-            default -> throw new IOException("Kein unterstuetztes Word-Format (erkannt: " + magic + ")");
-        };
     }
 }

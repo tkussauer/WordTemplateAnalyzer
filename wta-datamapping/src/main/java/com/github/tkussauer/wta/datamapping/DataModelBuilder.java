@@ -1,8 +1,8 @@
 package com.github.tkussauer.wta.datamapping;
 
 import com.github.tkussauer.wta.common.DocxLayout;
+import com.github.tkussauer.wta.common.InspireNames;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -167,24 +167,9 @@ public final class DataModelBuilder {
         return DEFAULT_GROUP;
     }
 
-    /**
-     * Wandelt einen Word-Namen in einen Inspire-Bezeichner: Umlaute ausgeschrieben, Woerter in
-     * PascalCase, nur Buchstaben und Ziffern, beginnend mit einem Buchstaben.
-     */
+    /** Inspire-Bezeichner zu einem Word-Namen, siehe {@link InspireNames#identifier(String)}. */
     static String identifier(String raw) {
-        String text = raw.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue")
-                .replace("Ä", "Ae").replace("Ö", "Oe").replace("Ü", "Ue").replace("ß", "ss");
-        text = Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        StringBuilder result = new StringBuilder();
-        for (String word : text.split("[^A-Za-z0-9]+")) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-            }
-        }
-        if (!result.isEmpty() && Character.isDigit(result.charAt(0))) {
-            result.insert(0, 'F');
-        }
-        return result.toString();
+        return InspireNames.identifier(raw);
     }
 
     private static ModelField toField(Draft draft) {

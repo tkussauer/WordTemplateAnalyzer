@@ -18,6 +18,7 @@
         <module>wta-complexity</module>
         <module>wta-datamapping</module>
         <module>wta-conditions</module>
+        <module>wta-blocks</module>
     </modules>
 
     <properties>

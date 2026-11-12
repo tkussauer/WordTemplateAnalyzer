@@ -12,6 +12,7 @@ einer Migration nach **Quadient Inspire**.
 | `wta-complexity`     | **Anwendung 2** – Komplexitätsbewertung in T-Shirt-Größen (S–XL)        |
 | `wta-datamapping`    | **Anwendung 3** – Extraktion aller zu befüllenden Variablen (Datenmapping) |
 | `wta-conditions`     | **Anwendung 4** – Extraktion aller Bedingungen (IF, COMPARE, SKIPIF, NEXTIF) |
+| `wta-blocks`         | **Anwendung 5** – Gleiche Blöcke (externe Blöcke in Inspire) und ähnliche Vorlagen |
 
 Weitere Anwendungen werden als zusätzliche Module angelegt und im Parent-`pom.xml`
 unter `<modules>` eingetragen.
@@ -272,3 +273,59 @@ Hinweise:
 - Vergleiche mit `*` oder `?` sind in Word Mustervergleiche; sie werden als Hinweis markiert.
 - Der normalisierte Ausdruck ist eine Vorlage für die Umsetzung, keine fertige Inspire-Syntax.
 - Sowohl `.docx`-Familie als auch `.doc`/`.dot` werden unterstützt.
+
+## Anwendung 5: Gleiche Blöcke und ähnliche Vorlagen
+
+Findet Absatzfolgen, die in mehreren Vorlagen gleich sind – Kandidaten für **externe Blöcke** in
+Quadient Inspire – und Vorlagen, die sich ab einer Schwelle (Standard 80 %) ähneln.
+
+```bash
+java -jar wta-blocks/target/wta-blocks.jar <Verzeichnis> <Ausgabedatei.xlsx>
+java -jar wta-blocks/target/wta-blocks.jar -s 90 <Verzeichnis> <Ausgabedatei.xlsx>
+```
+
+| Parameter / Option          | Bedeutung                                                                 |
+|-----------------------------|---------------------------------------------------------------------------|
+| `<Verzeichnis>`             | Verzeichnis mit den Word-Vorlagen                                         |
+| `<Ausgabedatei.xlsx>`       | Name der Excel-Datei (`.xlsx` wird bei Bedarf ergänzt)                    |
+| `-s`, `--schwelle <Prozent>`| Ähnlichkeitsschwelle für Vorlagen (Standard: 80)                          |
+| `--min-absatz <Anzahl>`     | Mindestbuchstaben je Absatz für den Blockvergleich (Standard: 15)         |
+| `--min-block <Anzahl>`      | Mindestbuchstaben je Block (Standard: 50)                                 |
+| `--min-vorlagen <Anzahl>`   | Mindestanzahl Vorlagen je Block (Standard: 2)                             |
+| `-n`, `--nicht-rekursiv`    | Unterverzeichnisse nicht durchsuchen                                      |
+
+### Gleiche Blöcke
+
+- Verglichen wird Absatz für Absatz (Inhalt, angezeigte Kopf- und Fußzeilen). Felder zählen mit ihrem
+  Namen (`«Vertragsnummer»`), nicht mit ihrem zufällig gespeicherten Ergebnis – ein Block mit
+  denselben Feldern ist also auch dann gleich, wenn die Vorlagen unterschiedliche Beispielwerte zeigen.
+- Kurze Absätze (Leerzeilen, „Seite 1“, ein einzelnes Feld) werden übergangen, damit sie gemeinsame
+  Blöcke nicht unterbrechen. Ein Block bleibt innerhalb eines Bereichs (z. B. nur Fußzeile).
+- Gefunden wird jeweils die längste gemeinsame Absatzfolge. Kommt ein Teil davon in weiteren Vorlagen
+  vor, wird er als eigener Block mit größerer Verbreitung ausgewiesen.
+- Sortiert wird nach **Wiederverwendungswert** = Buchstaben × (Vorlagen − 1), also nach dem Pflegeaufwand,
+  der durch einen externen Block entfällt. Der vorgeschlagene **Blockname** ist ein gültiger
+  Inspire-Bezeichner aus Bereich und den ersten Wörtern (z. B. `Fuss_MusterfirmaGmbHMusterstrasse…`).
+
+### Ähnliche Vorlagen
+
+- Ähnlichkeit = Anteil gemeinsamer Folgen von drei Wörtern am gesamten Text beider Vorlagen
+  (Dice-Koeffizient, inkl. Feldplatzhaltern). Das Maß verträgt verschobene Absätze und erkennt auch
+  leicht umformulierte Vorlagen.
+- Vorlagen, die direkt oder über andere Vorlagen die Schwelle erreichen, bilden eine **Gruppe**; die
+  Vorlage mit der höchsten durchschnittlichen Ähnlichkeit wird als **Referenzvorlage** vorgeschlagen.
+  Solche Gruppen sind Kandidaten, um mehrere Word-Vorlagen in eine Inspire-Vorlage mit Varianten
+  zusammenzuführen.
+
+### Inhalt der Excel-Datei
+
+| Arbeitsblatt          | Inhalt                                                                                     |
+|-----------------------|--------------------------------------------------------------------------------------------|
+| **Blöcke**            | Blockname (Vorschlag), Bereich, Absätze, Umfang, Anzahl/Anteil Vorlagen, Wiederverwendungswert (Datenbalken), Felder im Block, vollständiger Text, Vorlagen |
+| Block-Vorkommen       | Je Block und Vorlage: Bereich und Absatznummern                                            |
+| **Ähnliche Dokumente**| Vorlagenpaare ab der Schwelle mit Ähnlichkeit (Farbskala), gemeinsamen und abweichenden Absätzen inkl. Vorschau der Abweichungen und Gruppe |
+| Ähnlichkeitsgruppen   | Gruppen mit Referenzvorlage, minimaler und durchschnittlicher Ähnlichkeit                  |
+| Matrix                | Ähnlichkeit aller Vorlagen untereinander als Farbmatrix (bis 200 Vorlagen)                  |
+| Übersicht             | Je Vorlage: Absätze, Anteil des Textes in gemeinsamen Blöcken, ähnlichste Vorlage, Gruppe   |
+| Parameter             | Verwendete Schwelle und Mindestgrößen                                                      |
+| Fehler                | Nicht lesbare Dateien (nur vorhanden, wenn Fehler auftraten)                               |
