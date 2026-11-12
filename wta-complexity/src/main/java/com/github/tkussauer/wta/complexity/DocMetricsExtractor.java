@@ -45,7 +45,13 @@ public class DocMetricsExtractor implements MetricsExtractor {
             metrics.set(Metric.PARAGRAPHS, main.numParagraphs() + nonBlankParagraphs(doc::getHeaderStoryRange)
                     + nonBlankParagraphs(doc::getFootnoteRange) + nonBlankParagraphs(doc::getEndnoteRange)
                     + nonBlankParagraphs(doc::getMainTextboxRange));
-            countFields(overall.text(), metrics);
+            FieldCounter fields = new FieldCounter(metrics);
+            countFields(fields, Region.CONTENT, rangeText(doc::getRange));
+            countFields(fields, Region.CONTENT, rangeText(doc::getFootnoteRange));
+            countFields(fields, Region.CONTENT, rangeText(doc::getEndnoteRange));
+            countFields(fields, Region.CONTENT, rangeText(doc::getMainTextboxRange));
+            countFields(fields, Region.HEADER_FOOTER, rangeText(doc::getHeaderStoryRange));
+            fields.finish();
 
             int pageBreaks = (int) main.text().chars().filter(c -> c == PAGE_BREAK).count();
             for (int i = 0; i < main.numParagraphs(); i++) {
@@ -115,6 +121,22 @@ public class DocMetricsExtractor implements MetricsExtractor {
 
     static void countFields(String text, TemplateMetrics metrics) {
         FieldCounter fields = new FieldCounter(metrics);
+        countFields(fields, Region.CONTENT, text);
+        fields.finish();
+    }
+
+    private static String rangeText(Supplier<Range> range) {
+        try {
+            Range r = range.get();
+            return r != null ? r.text() : "";
+        } catch (RuntimeException e) {
+            // Bereich in der Datei nicht vorhanden
+            return "";
+        }
+    }
+
+    private static void countFields(FieldCounter fields, Region region, String text) {
+        fields.region(region);
         StringBuilder code = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
@@ -132,7 +154,10 @@ public class DocMetricsExtractor implements MetricsExtractor {
                 code.append(c);
             }
         }
-        fields.finish();
+        // Nicht abgeschlossene Felder eines Bereichs nicht in den naechsten uebernehmen
+        while (fields.hasOpenFields()) {
+            fields.end();
+        }
     }
 
     private static int shapes(Supplier<OfficeDrawings> drawings) {

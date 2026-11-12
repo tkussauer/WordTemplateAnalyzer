@@ -1,6 +1,9 @@
 package com.github.tkussauer.wta.complexity;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,6 +14,7 @@ public final class TemplateMetrics {
     private final String document;
     private final String format;
     private final Map<Metric, Integer> values = new EnumMap<>(Metric.class);
+    private final List<FieldEntry> fieldEntries = new ArrayList<>();
 
     public TemplateMetrics(String document, String format) {
         this.document = document;
@@ -36,6 +40,15 @@ public final class TemplateMetrics {
     public TemplateMetrics set(Metric metric, int value) {
         values.put(metric, value);
         return this;
+    }
+
+    /** Datenfelder und Bedingungen je Bereich. */
+    public List<FieldEntry> fieldEntries() {
+        return Collections.unmodifiableList(fieldEntries);
+    }
+
+    void addFieldEntry(FieldEntry entry) {
+        fieldEntries.add(entry);
     }
 
     void add(Metric metric, int delta) {

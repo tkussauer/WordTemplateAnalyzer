@@ -64,7 +64,9 @@ public class DocxMetricsExtractor implements MetricsExtractor {
                     hidden += hasContent ? 1 : 0;
                     continue;
                 }
+                walker.fields.region(Region.HEADER_FOOTER);
                 walker.walk(part._getHdrFtr());
+                walker.fields.region(Region.CONTENT);
                 withContent += hasContent ? 1 : 0;
             }
             metrics.set(Metric.HEADERS_FOOTERS, withContent);

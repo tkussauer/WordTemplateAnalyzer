@@ -89,6 +89,7 @@ java -jar wta-complexity/target/wta-complexity.jar <Verzeichnis> <Ausgabedatei.x
 |----------------------|----------------------------------------------------------------------------------------------------------|
 | **Komplexität**      | Je Vorlage: Größe (farbig), Punkte, die drei Hauptkomplexitätstreiber, ggf. Anhebung durch Mindestgröße und alle Kennzahlen; sortiert von XL nach S |
 | Übersicht            | Verteilung auf S/M/L/XL mit Punktebereich, Anzahl, Anteil, Ø Punkte, Ø Seiten und häufigsten Treibern   |
+| Felder & Bedingungen | Je Vorlage jedes Datenfeld und jede Bedingung mit Bereich (**Inhalt** oder **Kopf-/Fußzeile**), Feldart und Anzahl der Vorkommen |
 | Punkte               | Punkte je Kennzahl und Vorlage – zeigt, woraus sich die Einstufung zusammensetzt                        |
 | Bewertungsschema     | Die verwendeten Gewichte und Mindestgrößen (zur Nachvollziehbarkeit)                                    |
 | Fehler               | Nicht lesbare Dateien (nur vorhanden, wenn Fehler auftraten)                                            |
@@ -146,6 +147,13 @@ Hinweise:
 - Seiten: Die Angabe in den Dokumenteigenschaften ist oft veraltet (Stand des letzten Speicherns).
   Verwendet wird daher das Maximum aus dieser Angabe und einer Schätzung über manuelle
   Seitenumbrüche, Abschnitte, die auf einer neuen Seite beginnen, und von Word vermerkte Umbrüche.
+- Datenfelder und Bedingungen werden zusätzlich getrennt nach **Inhalt** (Haupttext, Tabellen,
+  Textfelder, Fuß-/Endnoten) und **Kopf-/Fußzeile** ausgewiesen („Datenfelder (Inhalt)“,
+  „Datenfelder (Kopf-/Fußzeile)“, „Bedingungen (Inhalt)“, „Bedingungen (Kopf-/Fußzeile)“). Ein Feld,
+  das in beiden Bereichen vorkommt, zählt in beiden. Diese Kennzahlen haben standardmäßig das Gewicht 0,
+  da sie in den Gesamtwerten enthalten sind. Für eine getrennte Gewichtung im eigenen Schema
+  `gewicht.datenfelder` bzw. `gewicht.bedingungen` auf 0 setzen und z. B.
+  `gewicht.datenfelder_inhalt` und `gewicht.datenfelder_kopf_fusszeile` vergeben.
 - Datenfelder zählen je Feldname einmal (`MERGEFIELD Name` an fünf Stellen = 1 Datenfeld);
   alle Vorkommen stehen in der Kennzahl „Datenfeld-Verwendungen“.
 - Kopf-/Fußzeilen, die Word nicht anzeigt (z. B. Variante „Erste Seite“, wenn der Abschnitt

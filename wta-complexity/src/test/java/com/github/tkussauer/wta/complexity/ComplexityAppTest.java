@@ -17,6 +17,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ComplexityAppTest {
 
@@ -50,6 +51,12 @@ class ComplexityAppTest {
             assertEquals(List.of("Gesamt", "", "", "2"), summary.get(5).subList(0, 4));
 
             assertNotNull(workbook.getSheet(ComplexityReportWriter.SHEET_POINTS));
+            List<List<String>> fields = rows(workbook.getSheet(ComplexityReportWriter.SHEET_FIELDS));
+            assertEquals(List.of("Dokument", "Größe", "Bereich", "Art", "Feldart", "Datenfeld / Bedingung",
+                    "Vorkommen"), fields.get(0));
+            assertTrue(fields.contains(List.of("komplex.dotx", "M", "Inhalt", "Bedingung", "IF",
+                    "IF {MERGEFIELD Anrede} = \"Herr\" \"Sehr geehrter Herr\" \"Sehr geehrte Frau\"", "1")),
+                    fields.toString());
             assertEquals(Metric.values().length + 1,
                     workbook.getSheet(ComplexityReportWriter.SHEET_MODEL).getPhysicalNumberOfRows());
             assertEquals(2, workbook.getSheet(ComplexityReportWriter.SHEET_ERRORS).getPhysicalNumberOfRows());

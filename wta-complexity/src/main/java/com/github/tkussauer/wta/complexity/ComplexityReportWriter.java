@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
  * <ul>
  *     <li><b>Komplexität</b> – T-Shirt-Größe, Punkte, Treiber und Kennzahlen je Vorlage</li>
  *     <li><b>Übersicht</b> – Verteilung der Vorlagen auf S, M, L, XL</li>
+ *     <li><b>Felder &amp; Bedingungen</b> – Datenfelder und Bedingungen je Vorlage, getrennt nach Inhalt und
+ *         Kopf-/Fußzeile</li>
  *     <li><b>Punkte</b> – Punkte je Kennzahl und Vorlage</li>
  *     <li><b>Bewertungsschema</b> – verwendete Gewichte und Mindestgrößen</li>
  *     <li><b>Fehler</b> – nicht lesbare Dokumente (nur falls vorhanden)</li>
@@ -40,6 +42,7 @@ public class ComplexityReportWriter {
     public static final String SHEET_COMPLEXITY = "Komplexität";
     public static final String SHEET_SUMMARY = "Übersicht";
     public static final String SHEET_POINTS = "Punkte";
+    public static final String SHEET_FIELDS = "Felder & Bedingungen";
     public static final String SHEET_MODEL = "Bewertungsschema";
     public static final String SHEET_ERRORS = "Fehler";
 
@@ -64,6 +67,7 @@ public class ComplexityReportWriter {
             Map<TShirtSize, CellStyle> sizeStyles = createSizeStyles(workbook);
             writeComplexity(workbook, assessments, sizeStyles);
             writeSummary(workbook, result.model(), assessments, sizeStyles);
+            writeFieldEntries(workbook, assessments, sizeStyles);
             writePoints(workbook, assessments, sizeStyles);
             writeModel(workbook, result.model());
             if (!result.failures().isEmpty()) {
@@ -131,6 +135,27 @@ public class ComplexityReportWriter {
                 assessments.isEmpty() ? null : round(average(assessments, Assessment::totalPoints)),
                 assessments.isEmpty() ? null : round(average(assessments, a -> a.metrics().get(Metric.PAGES))),
                 frequentDrivers(assessments));
+        sheet.finish();
+    }
+
+    private void writeFieldEntries(XSSFWorkbook workbook, List<Assessment> assessments,
+                                   Map<TShirtSize, CellStyle> sizeStyles) {
+        ExcelSheetWriter sheet = new ExcelSheetWriter(workbook, SHEET_FIELDS, List.of(
+                "Dokument", "Größe", "Bereich", "Art", "Feldart", "Datenfeld / Bedingung", "Vorkommen"));
+        // Je Vorlage: Inhalt vor Kopf-/Fusszeile, Datenfelder alphabetisch, Bedingungen in Dokumentreihenfolge
+        Comparator<FieldEntry> order = Comparator.comparing(FieldEntry::region)
+                .thenComparing(FieldEntry::condition)
+                .thenComparing((a, b) -> a.condition() ? 0 : String.CASE_INSENSITIVE_ORDER.compare(a.name(), b.name()));
+        for (Assessment assessment : assessments) {
+            List<FieldEntry> entries = new ArrayList<>(assessment.metrics().fieldEntries());
+            entries.sort(order);
+            for (FieldEntry entry : entries) {
+                Row row = sheet.addRow(assessment.metrics().document(), assessment.size().name(),
+                        entry.region().label(), entry.condition() ? "Bedingung" : "Datenfeld", entry.keyword(),
+                        entry.name(), entry.occurrences());
+                row.getCell(1).setCellStyle(sizeStyles.get(assessment.size()));
+            }
+        }
         sheet.finish();
     }
 

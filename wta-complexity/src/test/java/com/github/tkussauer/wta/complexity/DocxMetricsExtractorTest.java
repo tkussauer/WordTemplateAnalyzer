@@ -25,6 +25,7 @@ class DocxMetricsExtractorTest {
         assertEquals(2, metrics.get(Metric.TABLES));
         assertEquals(1, metrics.get(Metric.NESTED_TABLES));
         assertEquals(1, metrics.get(Metric.CONDITIONS));
+        assertEquals(1, metrics.get(Metric.CONDITIONS_CONTENT));
         assertEquals(1, metrics.get(Metric.DATA_FIELDS));
         assertEquals(1, metrics.get(Metric.INCLUDES));
         assertEquals(1, metrics.get(Metric.OTHER_FIELDS));
@@ -51,6 +52,11 @@ class DocxMetricsExtractorTest {
         assertEquals(0, metrics.get(Metric.CONDITIONS));
         assertEquals(2, metrics.get(Metric.DATA_FIELDS));
         assertEquals(3, metrics.get(Metric.DATA_FIELD_USES));
+        // Angezeigte Kopfzeile enthaelt nur PAGE, die nicht angezeigte zaehlt nicht
+        assertEquals(2, metrics.get(Metric.DATA_FIELDS_CONTENT));
+        assertEquals(0, metrics.get(Metric.DATA_FIELDS_HEADER_FOOTER));
+        assertEquals(0, metrics.get(Metric.CONDITIONS_HEADER_FOOTER));
+        assertTrue(metrics.fieldEntries().stream().allMatch(e -> e.region() == Region.CONTENT));
     }
 
     @Test

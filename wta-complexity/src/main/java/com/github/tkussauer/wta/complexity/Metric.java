@@ -20,9 +20,17 @@ public enum Metric {
             + "werden nicht weiter ausgewertet"),
     DATA_FIELDS("datenfelder", "Datenfelder", "Unterschiedliche variable Daten: MERGEFIELD, DOCVARIABLE, DOCPROPERTY, "
             + "REF, SET, ASK, FILLIN (jeder Feldname einmal)"),
+    DATA_FIELDS_CONTENT("datenfelder_inhalt", "Datenfelder (Inhalt)",
+            "Unterschiedliche Datenfelder im Inhalt (Haupttext, Fuß-/Endnoten)"),
+    DATA_FIELDS_HEADER_FOOTER("datenfelder_kopf_fusszeile", "Datenfelder (Kopf-/Fußzeile)",
+            "Unterschiedliche Datenfelder in angezeigten Kopf-/Fußzeilen"),
     DATA_FIELD_USES("datenfeld_verwendungen", "Datenfeld-Verwendungen", "Anzahl aller Vorkommen von Datenfeldern, "
             + "inkl. Wiederholungen"),
     CONDITIONS("bedingungen", "Bedingungen", "Bedingte Inhalte: IF, COMPARE, SKIPIF, NEXTIF"),
+    CONDITIONS_CONTENT("bedingungen_inhalt", "Bedingungen (Inhalt)",
+            "Bedingungen im Inhalt (Haupttext, Fuß-/Endnoten)"),
+    CONDITIONS_HEADER_FOOTER("bedingungen_kopf_fusszeile", "Bedingungen (Kopf-/Fußzeile)",
+            "Bedingungen in angezeigten Kopf-/Fußzeilen"),
     INCLUDES("einbindungen", "Einbindungen", "Externe Inhalte: INCLUDETEXT, INCLUDEPICTURE, AUTOTEXT, LINK, DATABASE"),
     FORM_FIELDS("formularfelder", "Formularfelder", "Legacy-Formularfelder: FORMTEXT, FORMCHECKBOX, FORMDROPDOWN"),
     OTHER_FIELDS("sonstige_felder", "Sonstige Felder", "Übrige Feldfunktionen, z. B. PAGE, NUMPAGES, DATE, HYPERLINK"),
